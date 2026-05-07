@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Activity Lookup — School Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0f1f3d;
+  --navy-mid: #162847;
+  --navy-light: #1e3560;
+  --gold: #e8a020;
+  --gold-light: #f5c05a;
+  --cream: #faf7f2;
+  --cream-dark: #f0ebe0;
+  --text: #1a2640;
+  --text-muted: #6b7a94;
+  --white: #ffffff;
+  --green: #1a9e6e;
+  --green-bg: #e8f7f1;
+  --red: #c94040;
+  --red-bg: #fceaea;
+  --border: #dde3ee;
+  --shadow: 0 4px 24px rgba(15,31,61,0.10);
+  --shadow-lg: 0 12px 48px rgba(15,31,61,0.16);
+  --radius: 14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 260px;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform 0.3s;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo .school-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--white);
+  line-height: 1.3;
+}
+.sidebar-logo .school-sub {
+  font-size: 11px;
+  color: var(--gold-light);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.sidebar-nav {
+  padding: 20px 12px;
+  flex: 1;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0 12px;
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.55);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: var(--gold); color: var(--navy); font-weight: 700; }
+.nav-item .ni-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+}
+
+/* Main */
+.main {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--text);
+}
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.topbar-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.topbar-badge {
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+/* Content */
+.content {
+  padding: 36px;
+  flex: 1;
+}
+
+/* Search card */
+.search-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.search-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--navy), var(--gold));
+}
+
+.search-card h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.search-card .search-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 14px;
+  align-items: end;
+}
+@media(max-width: 700px) {
+  .search-row { grid-template-columns: 1fr; }
+  .main { margin-left: 0; }
+  .sidebar { transform: translateX(-100%); }
+}
+
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.field-input, .field-select {
+  height: 46px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--cream);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.field-input:focus, .field-select:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(15,31,61,0.08);
+  background: var(--white);
+}
+
+.search-btn {
+  height: 46px;
+  padding: 0 28px;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.search-btn:hover { background: var(--navy-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(15,31,61,0.25); }
+.search-btn:active { transform: none; }
+
+/* Result area */
+.result-area { min-height: 200px; }
+
+/* Status cards */
+.status-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.status-icon { font-size: 48px; margin-bottom: 16px; }
+.status-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 8px; }
+.status-msg { color: var(--text-muted); font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto; }
+
+/* Student result card */
+.result-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+.result-header {
+  padding: 24px 28px;
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.student-avatar {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+.student-info .student-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--white);
+  line-height: 1.2;
+}
+.student-info .student-class {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 3px;
+  font-weight: 500;
+}
+.activity-count-badge {
+  margin-left: auto;
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* No activity */
+.no-activity-body {
+  padding: 36px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.no-activity-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.no-activity-body h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.no-activity-body p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+/* Activity cards */
+.activities-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.activity-item {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: center;
+  transition: all 0.2s;
+  animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+.activity-item:hover { border-color: var(--navy); background: #f7f9ff; transform: translateX(4px); }
+.activity-item:nth-child(1) { animation-delay: 0.05s; }
+.activity-item:nth-child(2) { animation-delay: 0.12s; }
+.activity-item:nth-child(3) { animation-delay: 0.19s; }
+@media(max-width:800px) {
+  .activity-item { grid-template-columns: 1fr 1fr; }
+}
+
+.act-field { display: flex; flex-direction: column; gap: 3px; }
+.act-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.act-field-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.act-name-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.act-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--cream-dark);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ===== DATA MANAGER PANEL ===== */
+.panel-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cream-dark);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+.panel-tab {
+  padding: 8px 20px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.panel-tab.active { background: var(--white); color: var(--navy); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+.data-panel { display: none; }
+.data-panel.active { display: block; }
+
+/* Table */
+.data-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: auto;
+  margin-bottom: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  background: var(--navy);
+  color: rgba(255,255,255,0.8);
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f7f9ff; }
+.td-class { font-weight: 700; color: var(--navy); }
+.td-activity { font-weight: 600; }
+td .del-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #e8c0c0;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+td .del-btn:hover { background: var(--red); color: white; }
+
+/* Add form */
+.add-form-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+.add-form-card h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.add-form-card .form-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.form-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.add-btn {
+  height: 42px;
+  padding: 0 24px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s;
+}
+.add-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.secondary-btn {
+  height: 42px;
+  padding: 0 20px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.secondary-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--text);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.toast.show { transform: none; opacity: 1; }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* CSV upload */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--cream);
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--navy); background: #f0f3fb; }
+.upload-icon { font-size: 36px; margin-bottom: 12px; }
+.upload-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+.upload-sub { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.upload-sub strong { color: var(--navy); }
+#csvFileInput { display: none; }
+
+/* Google Form instructions */
+.gform-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+.gform-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.gform-step:last-child { border-bottom: none; }
+.gform-step-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.gform-step-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.gform-step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.gform-step-content code {
+  background: var(--cream-dark);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--navy);
+}
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media(max-width:700px){ .stats-row { grid-template-columns: 1fr 1fr; } }
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.stat-val { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--navy); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+/* Page management */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Highlight on row click */
+.highlight-row td { background: #fffbf0 !important; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="school-name">Admin Portal</div>
+      <div class="school-sub">Student Activity System</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Main</div>
+      <a class="nav-item active" onclick="showPage('lookup')" href="#">
+        <span class="ni-icon">🔍</span> Student Lookup
+      </a>
+      <div class="nav-label">Management</div>
+      <a class="nav-item" onclick="showPage('manage')" href="#">
+        <span class="ni-icon">📋</span> Manage Activities
+      </a>
+      <a class="nav-item" onclick="showPage('import')" href="#">
+        <span class="ni-icon">📂</span> Import Data
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      School Admin System v1.0<br>
+      Data stored locally in browser
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Student Lookup</div>
+      <div class="topbar-meta">
+        <span class="topbar-date" id="todayDate"></span>
+        <span class="topbar-badge" id="recordCount">0 records</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== LOOKUP PAGE ===== -->
+      <div class="page active" id="page-lookup">
+        <div class="search-card">
+          <h2>Student Activity Lookup</h2>
+          <p class="search-desc">Enter a student's class and name to check their after-school activity status. Use this when a parent calls to enquire about their child's whereabouts.</p>
+          <div class="search-row">
+            <div class="field-group">
+              <label class="field-label" for="classInput">Class</label>
+              <select class="field-select" id="classInput">
+                <option value="">All Classes</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="nameInput">Student Name</label>
+              <input class="field-input" id="nameInput" type="text" placeholder="e.g. Tan Wei Ming" autocomplete="off" />
+            </div>
+            <button class="search-btn" onclick="doSearch()">
+              <span>🔍</span> Search
+            </button>
+          </div>
+        </div>
+
+        <div class="result-area" id="resultArea">
+          <div class="status-card">
+            <div class="status-icon">🏫</div>
+            <div class="status-title">Ready to Search</div>
+            <div class="status-msg">Enter a student's class and/or name above and click Search to view their after-school activity details.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MANAGE PAGE ===== -->
+      <div class="page" id="page-manage">
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="panel-tabs">
+          <button class="panel-tab active" onclick="switchMTab('view',this)">View All Records</button>
+          <button class="panel-tab" onclick="switchMTab('add',this)">Add Single Entry</button>
+        </div>
+
+        <div class="data-panel active" id="mpanel-view">
+          <div class="data-table-wrap">
+            <table id="dataTable">
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Student Name</th>
+                  <th>Activity Name</th>
+                  <th>Teacher In-Charge</th>
+                  <th>Venue</th>
+                  <th>Day / Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody"></tbody>
+            </table>
+          </div>
+          <button class="secondary-btn" onclick="clearAll()" style="margin-top:4px">🗑 Clear All Records</button>
+        </div>
+
+        <div class="data-panel" id="mpanel-add">
+          <div class="add-form-card">
+            <h3>Add New Entry</h3>
+            <p class="form-desc">Add one student's after-school activity manually. All fields are required.</p>
+            <div class="form-grid">
+              <div class="field-group">
+                <label class="field-label">Class</label>
+                <input class="field-input" id="f_class" placeholder="e.g. 3A" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Student Name</label>
+                <input class="field-input" id="f_name" placeholder="Full name" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Activity Name</label>
+                <input class="field-input" id="f_activity" placeholder="e.g. Basketball CCA" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Teacher In-Charge</label>
+                <input class="field-input" id="f_teacher" placeholder="e.g. Mr Lim Wei Jie" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Venue</label>
+                <input class="field-input" id="f_venue" placeholder="e.g. Sports Hall" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Day & Time</label>
+                <input class="field-input" id="f_time" placeholder="e.g. Mon & Thu, 3:00–5:00 PM" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="add-btn" onclick="addEntry()">✚ Add Entry</button>
+              <button class="secondary-btn" onclick="clearForm()">Clear Form</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== IMPORT PAGE ===== -->
+      <div class="page" id="page-import">
+        <div class="panel-tabs">
+          <button class="panel-tab active" onclick="switchITab('excel',this)">Excel / CSV Upload</button>
+          <button class="panel-tab" onclick="switchITab('gform',this)">Google Form Setup Guide</button>
+          <button class="panel-tab" onclick="switchITab('paste',this)">Paste CSV Data</button>
+        </div>
+
+        <!-- Excel/CSV -->
+        <div class="data-panel active" id="ipanel-excel">
+          <div class="add-form-card" style="margin-bottom:20px">
+            <h3>Upload Excel / CSV File</h3>
+            <p class="form-desc">Teachers export their activity data to a CSV or Excel file and upload it here. The system will automatically import all records.</p>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('csvFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+              <div class="upload-icon">📄</div>
+              <div class="upload-title">Click to upload, or drag &amp; drop</div>
+              <div class="upload-sub">
+                Supports <strong>.csv</strong> and <strong>.xlsx</strong> (Excel) files.<br>
+                Required columns: <strong>Class, Student Name, Activity Name, Teacher In-Charge, Venue, Day &amp; Time</strong>
+              </div>
+            </div>
+            <input type="file" id="csvFileInput" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)">
+          </div>
+
+          <!-- Template download -->
+          <div class="add-form-card">
+            <h3>📥 Download Template</h3>
+            <p class="form-desc">Give teachers this CSV template to fill in their activity data, then have them send it back to you for upload.</p>
+            <button class="add-btn" onclick="downloadTemplate()">⬇ Download CSV Template</button>
+          </div>
+        </div>
+
+        <!-- Google Form -->
+        <div class="data-panel" id="ipanel-gform">
+          <div class="gform-card">
+            <h3 style="font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:4px">Using Google Forms as Your Data Source</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Have teachers submit activity details via a Google Form. The responses link to a Google Sheet which you can export as CSV and upload here.</p>
+
+            <div class="gform-step">
+              <div class="gform-step-num">1</div>
+              <div class="gform-step-content">
+                <h4>Create a Google Form with these fields</h4>
+                <p>Add the following questions: <code>Class</code>, <code>Student Name</code>, <code>Activity Name</code>, <code>Teacher In-Charge</code>, <code>Venue</code>, <code>Day &amp; Time</code>. Share the form link with all teachers.</p>
+              </div>
+            </div>
+            <div class="gform-step">
+              <div class="gform-step-num">2</div>
+              <div class="gform-step-content">
+                <h4>Link to a Google Sheet</h4>
+                <p>In your Google Form, click <code>Responses</code> → <code>Link to Sheets</code>. All teacher submissions will automatically appear in the spreadsheet.</p>
+              </div>
+            </div>
+            <div class="gform-step">
+              <div class="gform-step-num">3</div>
+              <div class="gform-step-content">
+                <h4>Export the Sheet as CSV</h4>
+                <p>In Google Sheets, go to <code>File</code> → <code>Download</code> → <code>Comma Separated Values (.csv)</code>. Save the file to your computer.</p>
+              </div>
+            </div>
+            <div class="gform-step">
+              <div class="gform-step-num">4</div>
+              <div class="gform-step-content">
+                <h4>Upload to this system</h4>
+                <p>Go to the <strong>Excel / CSV Upload</strong> tab and upload the downloaded CSV file. Ensure the column headers match: <code>Class</code>, <code>Student Name</code>, <code>Activity Name</code>, <code>Teacher In-Charge</code>, <code>Venue</code>, <code>Day &amp; Time</code>.</p>
+              </div>
+            </div>
+            <div class="gform-step">
+              <div class="gform-step-num">5</div>
+              <div class="gform-step-content">
+                <h4>Refresh data each term</h4>
+                <p>Repeat steps 3–4 at the start of each term. Use <code>Clear All Records</code> in Manage Activities first to avoid duplicates, then re-upload the fresh export.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paste CSV -->
+        <div class="data-panel" id="ipanel-paste">
+          <div class="add-form-card">
+            <h3>Paste CSV Data Directly</h3>
+            <p class="form-desc">Copy data from your spreadsheet and paste it here. First row must be the header row with column names.</p>
+            <div class="field-group" style="margin-bottom:16px">
+              <label class="field-label">CSV Data</label>
+              <textarea id="pasteArea" style="width:100%;height:220px;border:1.5px solid var(--border);border-radius:10px;padding:14px;font-family:monospace;font-size:12.5px;color:var(--text);background:var(--cream);resize:vertical;outline:none;line-height:1.6" placeholder="Class,Student Name,Activity Name,Teacher In-Charge,Venue,Day &amp; Time&#10;3A,Tan Wei Ming,Basketball CCA,Mr Lim Wei Jie,Sports Hall,Mon &amp; Thu 3–5 PM&#10;3A,Sarah Lim,Choir,Ms Chan Hwee Ling,Music Room 2,Wed 3–5 PM"></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="add-btn" onclick="importFromPaste()">✚ Import Pasted Data</button>
+              <button class="secondary-btn" onclick="document.getElementById('pasteArea').value=''">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  DATA STORE — localStorage persistence
+// ============================================================
+const STORE_KEY = 'sas_activities_v1';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch { return []; }
+}
+function saveData(arr) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(arr));
+  updateBadge();
+  populateClassFilter();
+}
+
+let activities = loadData();
+
+// Sample data seed if empty
+if (activities.length === 0) {
+  activities = [
+    { id: uid(), class: '3A', name: 'Tan Wei Ming', activity: 'Basketball CCA', teacher: 'Mr Lim Wei Jie', venue: 'Sports Hall', time: 'Mon & Thu, 3:00–5:00 PM' },
+    { id: uid(), class: '3A', name: 'Sarah Lim Hui Ling', activity: 'Choir', teacher: 'Ms Chan Hwee Ling', venue: 'Music Room 2', time: 'Wed, 3:00–5:30 PM' },
+    { id: uid(), class: '3B', name: 'Muhammad Farhan', activity: 'Robotics Club', teacher: 'Mr Tan Chee Kiang', venue: 'ICT Lab 3', time: 'Tue & Fri, 3:00–5:00 PM' },
+    { id: uid(), class: '3B', name: 'Priya Nair', activity: 'Debate Club', teacher: 'Ms Yeo Siew Eng', venue: 'Library Seminar Room', time: 'Thu, 3:30–5:30 PM' },
+    { id: uid(), class: '2C', name: 'Kevin Ong Jun Wei', activity: 'Swimming', teacher: 'Mr Hassan Ibrahim', venue: 'School Pool', time: 'Mon & Wed, 3:00–4:30 PM' },
+    { id: uid(), class: '2C', name: 'Kevin Ong Jun Wei', activity: 'Science Club', teacher: 'Ms Rajasekaran Meena', venue: 'Science Lab 1', time: 'Fri, 3:00–5:00 PM' },
+    { id: uid(), class: '1A', name: 'Chloe Tan Rui Xin', activity: 'Art Club', teacher: 'Ms Wong Li Fen', venue: 'Art Room', time: 'Tue, 3:30–5:30 PM' },
+  ];
+  saveData(activities);
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function updateBadge() {
+  document.getElementById('recordCount').textContent = activities.length + ' record' + (activities.length !== 1 ? 's' : '');
+}
+
+// ============================================================
+//  PAGE ROUTING
+// ============================================================
+const pages = { lookup: 'Student Lookup', manage: 'Manage Activities', import: 'Import Data' };
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('pageTitle').textContent = pages[id];
+  if (id === 'manage') { renderTable(); renderStats(); }
+}
+
+// ============================================================
+//  DATE
+// ============================================================
+function setDate() {
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('todayDate').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+setDate();
+
+// ============================================================
+//  CLASS FILTER
+// ============================================================
+function populateClassFilter() {
+  const sel = document.getElementById('classInput');
+  const current = sel.value;
+  const classes = [...new Set(activities.map(a => a.class))].sort();
+  sel.innerHTML = '<option value="">All Classes</option>';
+  classes.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+populateClassFilter();
+updateBadge();
+
+// ============================================================
+//  LOOKUP
+// ============================================================
+function doSearch() {
+  const cls = document.getElementById('classInput').value.trim().toLowerCase();
+  const name = document.getElementById('nameInput').value.trim().toLowerCase();
+
+  if (!cls && !name) {
+    showResult('empty');
+    return;
+  }
+
+  const matches = activities.filter(a => {
+    const classMatch = !cls || a.class.toLowerCase() === cls;
+    const nameMatch = !name || a.name.toLowerCase().includes(name);
+    return classMatch && nameMatch;
+  });
+
+  const uniqueStudents = [...new Set(matches.map(a => a.class + '||' + a.name))];
+
+  if (uniqueStudents.length === 0) {
+    showResult('notfound', { cls, name });
+    return;
+  }
+
+  // Check if student exists in full dataset (to distinguish "exists but no activity" from "not found")
+  const studentActivities = matches;
+  const displayName = name ? name : 'Multiple students';
+
+  if (studentActivities.length === 0) {
+    showResult('noactivity', { name: displayName, cls });
+  } else {
+    showResult('found', { students: uniqueStudents, matches });
+  }
+}
+
+function showResult(type, data) {
+  const area = document.getElementById('resultArea');
+
+  if (type === 'empty') {
+    area.innerHTML = `<div class="status-card">
+      <div class="status-icon">✏️</div>
+      <div class="status-title">Enter Search Details</div>
+      <div class="status-msg">Please enter at least a class or student name to search.</div>
+    </div>`;
+    return;
+  }
+
+  if (type === 'notfound') {
+    area.innerHTML = `<div class="status-card">
+      <div class="status-icon">🔎</div>
+      <div class="status-title">No Record Found</div>
+      <div class="status-msg">No student matching "${data.name ? data.name : ''} ${data.cls ? '(Class ' + data.cls.toUpperCase() + ')' : ''}" was found in the system. Please verify the name spelling and class, or check if the student has been registered in the system.</div>
+    </div>`;
+    return;
+  }
+
+  // Build result cards per unique student
+  let html = '';
+  const uniqueStudents = [...new Set(data.matches.map(a => a.class + '||' + a.name))];
+
+  uniqueStudents.forEach(key => {
+    const [studentClass, studentName] = key.split('||');
+    const studentActivities = data.matches.filter(a => a.class === studentClass && a.name === studentName);
+    const initials = studentName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+    html += `<div class="result-card" style="margin-bottom:20px">
+      <div class="result-header">
+        <div class="student-avatar">${initials}</div>
+        <div class="student-info">
+          <div class="student-name">${studentName}</div>
+          <div class="student-class">Class ${studentClass}</div>
+        </div>
+        <div class="activity-count-badge">📌 ${studentActivities.length} activit${studentActivities.length > 1 ? 'ies' : 'y'} today</div>
+      </div>
+      <div class="activities-body">`;
+
+    studentActivities.forEach((act, i) => {
+      html += `<div class="activity-item">
+        <div class="act-field">
+          <span class="act-field-label">Activity</span>
+          <span class="act-field-val act-name-val">🏅 ${act.activity}</span>
+        </div>
+        <div class="act-field">
+          <span class="act-field-label">Teacher In-Charge</span>
+          <span class="act-field-val">👤 ${act.teacher}</span>
+        </div>
+        <div class="act-field">
+          <span class="act-field-label">Venue</span>
+          <span class="act-field-val">📍 ${act.venue}</span>
+        </div>
+        <div class="act-field">
+          <span class="act-field-label">Day &amp; Time</span>
+          <span class="act-field-val">🕐 ${act.time}</span>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  area.innerHTML = html;
+}
+
+// Enter key on search
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+// ============================================================
+//  MANAGE — TABLE
+// ============================================================
+function renderTable() {
+  const tbody = document.getElementById('dataTableBody');
+  if (activities.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:36px">No records yet. Use the Import Data page or Add Single Entry to get started.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = activities.map(a => `
+    <tr>
+      <td class="td-class">${a.class}</td>
+      <td class="td-activity">${a.name}</td>
+      <td>${a.activity}</td>
+      <td>${a.teacher}</td>
+      <td>${a.venue}</td>
+      <td>${a.time}</td>
+      <td><button class="del-btn" onclick="deleteEntry('${a.id}')">Delete</button></td>
+    </tr>
+  `).join('');
+}
+
+function deleteEntry(id) {
+  activities = activities.filter(a => a.id !== id);
+  saveData(activities);
+  renderTable();
+  renderStats();
+  showToast('Record deleted.', 'success');
+}
+
+function clearAll() {
+  if (!confirm('Are you sure you want to delete ALL records? This cannot be undone.')) return;
+  activities = [];
+  saveData(activities);
+  renderTable();
+  renderStats();
+  showToast('All records cleared.', 'success');
+}
+
+function renderStats() {
+  const students = new Set(activities.map(a => a.class + a.name)).size;
+  const classes = new Set(activities.map(a => a.class)).size;
+  const activityTypes = new Set(activities.map(a => a.activity)).size;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${activities.length}</div><div class="stat-label">Total Records</div></div>
+    <div class="stat-card"><div class="stat-val">${students}</div><div class="stat-label">Students Enrolled</div></div>
+    <div class="stat-card"><div class="stat-val">${classes}</div><div class="stat-label">Classes</div></div>
+    <div class="stat-card"><div class="stat-val">${activityTypes}</div><div class="stat-label">Unique Activities</div></div>
+  `;
+}
+
+// ============================================================
+//  MANAGE — ADD FORM
+// ============================================================
+function addEntry() {
+  const f = {
+    id: uid(),
+    class: document.getElementById('f_class').value.trim(),
+    name: document.getElementById('f_name').value.trim(),
+    activity: document.getElementById('f_activity').value.trim(),
+    teacher: document.getElementById('f_teacher').value.trim(),
+    venue: document.getElementById('f_venue').value.trim(),
+    time: document.getElementById('f_time').value.trim()
+  };
+  if (!f.class || !f.name || !f.activity || !f.teacher || !f.venue || !f.time) {
+    showToast('Please fill in all fields.', 'error'); return;
+  }
+  activities.push(f);
+  saveData(activities);
+  clearForm();
+  showToast(`Entry added for ${f.name}.`, 'success');
+}
+
+function clearForm() {
+  ['f_class','f_name','f_activity','f_teacher','f_venue','f_time'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ============================================================
+//  IMPORT — CSV PARSING
+// ============================================================
+const HEADER_MAP = {
+  'class': 'class',
+  'student name': 'name', 'name': 'name', 'student': 'name',
+  'activity name': 'activity', 'activity': 'activity', 'cca': 'activity', 'programme': 'activity',
+  'teacher in-charge': 'teacher', 'teacher': 'teacher', 'teacher in charge': 'teacher', 'teacher-in-charge': 'teacher', 'tic': 'teacher',
+  'venue': 'venue', 'location': 'venue',
+  'day & time': 'time', 'day and time': 'time', 'time': 'time', 'schedule': 'time', 'day/time': 'time'
+};
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+  const fieldMap = {};
+  headers.forEach((h, i) => {
+    const mapped = HEADER_MAP[h];
+    if (mapped) fieldMap[i] = mapped;
+  });
+
+  const required = ['class','name','activity','teacher','venue','time'];
+  const missing = required.filter(r => !Object.values(fieldMap).includes(r));
+  if (missing.length > 0) {
+    showToast('Missing columns: ' + missing.join(', '), 'error');
+    return null;
+  }
+
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    if (cols.every(c => !c.trim())) continue;
+    const rec = { id: uid() };
+    Object.entries(fieldMap).forEach(([idx, field]) => {
+      rec[field] = (cols[idx] || '').trim().replace(/^"|"$/g, '');
+    });
+    if (rec.class && rec.name) records.push(rec);
+  }
+  return records;
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let current = '', inQuotes = false;
+  for (let c of line) {
+    if (c === '"') { inQuotes = !inQuotes; }
+    else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+    else { current += c; }
+  }
+  result.push(current);
+  return result;
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const records = parseCSV(e.target.result);
+    if (records === null) return;
+    if (records.length === 0) { showToast('No valid records found in file.', 'error'); return; }
+    activities = [...activities, ...records];
+    saveData(activities);
+    showToast(`✅ Imported ${records.length} records successfully.`, 'success');
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function importFromPaste() {
+  const text = document.getElementById('pasteArea').value;
+  if (!text.trim()) { showToast('Nothing to import.', 'error'); return; }
+  const records = parseCSV(text);
+  if (records === null) return;
+  if (records.length === 0) { showToast('No valid records found.', 'error'); return; }
+  activities = [...activities, ...records];
+  saveData(activities);
+  document.getElementById('pasteArea').value = '';
+  showToast(`✅ Imported ${records.length} records.`, 'success');
+}
+
+// Drag and drop
+function dragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function dragLeave(e) { document.getElementById('uploadZone').classList.remove('drag'); }
+function dropFile(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const records = parseCSV(ev.target.result);
+    if (records === null) return;
+    if (records.length === 0) { showToast('No valid records found.', 'error'); return; }
+    activities = [...activities, ...records];
+    saveData(activities);
+    showToast(`✅ Imported ${records.length} records.`, 'success');
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================
+//  TEMPLATE DOWNLOAD
+// ============================================================
+function downloadTemplate() {
+  const csv = `Class,Student Name,Activity Name,Teacher In-Charge,Venue,Day & Time
+3A,Tan Wei Ming,Basketball CCA,Mr Lim Wei Jie,Sports Hall,"Mon & Thu, 3:00-5:00 PM"
+3A,Sarah Lim,Choir,Ms Chan Hwee Ling,Music Room 2,"Wed, 3:00-5:30 PM"
+`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'activity_template.csv';
+  a.click();
+  showToast('Template downloaded.', 'success');
+}
+
+// ============================================================
+//  TAB SWITCHING
+// ============================================================
+function switchMTab(id, btn) {
+  document.querySelectorAll('#page-manage .panel-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#page-manage .data-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mpanel-' + id).classList.add('active');
+  if (id === 'view') renderTable();
+}
+
+function switchITab(id, btn) {
+  document.querySelectorAll('#page-import .panel-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#page-import .data-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ipanel-' + id).classList.add('active');
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✓ ' : type === 'error' ? '✗ ' : '') + msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
